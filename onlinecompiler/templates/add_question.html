@@ -1,0 +1,71 @@
+{% extends "admin_layout.html" %}
+
+{% block title %}
+<div class="container">
+    <div class="row top">
+        <div class="col-lg-9 mx-auto">
+
+            <h3>Add New Question</h3>
+            <br>
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input name="title" required class="form-control" id="title" placeholder="Enter Question Title">
+                </div>
+                <div class="form-group">
+                    <label for="Description">Description</label>
+                    <textarea name="description" required class="form-control" id="Description" rows="5"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="IP">Input data (Public)</label>
+                    <textarea name="input" required class="form-control" id="IP" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="OP">Output data(Public)</label>
+                    <textarea name="output" required class="form-control" id="OP" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="explanation">Explanation</label>
+                    <textarea name="explanation" required class="form-control" id="explanation" rows="5"></textarea>
+                </div>
+                <hr>
+                <input id="privateCases" required type="hidden" name="privateCases" value="0">
+                <div id="add-box"></div>
+
+                <center>
+                    <button type="button" class="btn btn-primary" id="add">Add Private Test cases</button>
+                </center>
+
+                <div class="form-check">
+                    <input type="checkbox" name="verification" class="form-check-input" id="exampleCheck1">
+                    <label class="form-check-label" for="exampleCheck1">Perform Code verification</label>
+                </div>
+                <br>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+            <br>
+            <br>
+
+
+        </div>
+        <div class="col-lg-3 mx-auto">
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+      var count =0;
+      $("#add").click(function(event) {
+       count +=1
+             $('#privateCases').val(count);
+        var template = '<div class="form-group"><label for="IP">Input data (Private '+count
+        +')</label><textarea required name="inputP'+count+'" class="form-control" id="IP" rows="3"></textarea></div><div class="form-group"><label for="OP">Output data (Private '+
+        count+')</label><textarea required name="outputP'+count+'" class="form-control" id="OP" rows="3"></textarea></div>'
+        $("#add-box").append(template)
+      });
+
+</script>
+{% endblock %}

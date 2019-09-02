@@ -1,0 +1,185 @@
+{% extends "user_layout.html" %}
+
+{% block title %}
+<div class="container">
+    <div class="row top">
+        <div class="col-lg-9 mx-auto">
+
+            <h1>{{ques.title}}</h1>
+
+            <p class="lead">{{ques.description|linebreaksbr}}</p>
+            <h5>Input data</h5>
+            <p class="lead">
+            <div class="info">{{ques.input_public|linebreaksbr}}</div>
+            </p>
+            <h5>Output</h5>
+            <p class="lead">
+            <div class="info">{{ques.output_public|linebreaksbr}}</div>
+            </p>
+            <h5> Explanation:</h5>
+            <p class="lead">{{ques.explanation|linebreaksbr}}</p>
+            <br>
+
+            {% csrf_token %}
+            <input type="hidden" value="{{ques.id}}" id="id">
+            <select id="lang">
+                <option>Select</option>
+                <option>C/C++</option>
+                <option>Java</option>
+                <option>Python</option>
+            </select>
+            <br>
+            <br>
+            <div id="editor" style=" width: auto; height:300px;">Choose your language</div>
+            <!--<button type="button"> Compile</button>-->
+            <br>
+
+            <input type="checkbox" id="custom"> Custom Input
+            <br>
+            <textarea id="custom_input" class="form-control" style="display: none;" rows="3"></textarea>
+            <br>
+            <button type="button" id="test" class="btn btn-secondary">Test</button>
+            <button type="button" id="compile" class="btn btn-success">Submit</button>
+
+            <br>
+            <br>
+
+            <div class="debug" id="debug" style="display: none;">
+                <p class="lead"> Input (stdin)</p>
+                <div class="output-area" id="debugInput">
+                </div>
+                <br>
+                <p class="lead"> Your Output (stdout)</p>
+
+                <div class="output-area" id="yourdebugOutput">
+                </div>
+                <br>
+
+                <p class="lead">Expected Output</p>
+                <div class="output-area" id="expdebugOutput">
+                </div>
+            </div>
+
+
+            <div class="result" id="result" style="display: none;">
+                <div class="container">
+                    <center><h4 id="res">Result</h4></center>
+                    <div class="row" id="resdata">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 mx-auto">
+            <p>Maximum Marks: 10</p>
+            <p id="res1">Your Score: 0/10</p>
+
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script src="/static/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+var editor = ace.edit("editor");
+// editor.setTheme("ace/theme/monokai");
+editor.setOptions({
+  fontSize: "12pt"
+});
+
+
+</script>
+<script type='text/javascript'>
+    $( "#lang" ).change(function() {
+      var language = $("#lang").val();
+      if(language == "Java"){
+        editor.getSession().setMode("ace/mode/java");
+        editor.setValue("class Main{\n\t public static void main(String arg[]){\n\t\t//Your code here\n\t\t}\n\t}");
+
+      }
+      if(language == "Python"){
+         editor.getSession().setMode("ace/mode/python");
+        editor.setValue("");
+      }
+      if(language == "C/C++"){
+        editor.getSession().setMode("ace/mode/c_cpp");
+         editor.setValue("#include<stdio.h>\n\n int main(){\n\t//Your code here \n return 0;\n\t}");
+      }
+      });
+
+    $("#test").click(function(event) {
+      url = "/compileTest";
+      var posting = $.post( url, {
+        'code': editor.getValue(),
+        'lang': $('#lang').val(),
+        'id': $('#id').val(),
+        'custom': $('#custom').val(),
+        'cinput': $('#custom_input').val(),
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      });
+      posting.done(function( data ) {
+
+        $('#debug').show( "fast" );
+        $('#result').hide( "fast" );
+        var ob = JSON.parse(data);
+        $('#debugInput').html(ob[0].replace(/\n/g, "<br>"));
+        var str = ob[1]+"";
+        str = str.replace(/\n/g, "<br>");
+        $('#yourdebugOutput').html(str);
+        $('#expdebugOutput').html(ob[2].replace(/\n/g, "<br>"));
+        });
+      });
+
+  $('#custom').change(function() {
+        if($(this).is(":checked")) {
+        $(this).val(1);
+            $('#custom_input').show( "fast" );
+        }
+        else{
+        $('#custom_input').hide( "fast" );
+         $(this).val(0);
+        }
+    });
+
+     $("#compile").click(function(event) {
+      url = "/compile";
+      var posting = $.post( url, {
+        'code': editor.getValue(),
+        'lang': $('#lang').val(),
+        'id': $('#id').val(),
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      });
+      posting.done(function( data ) {
+
+
+        $('#debug').hide( "fast" );
+        $('#result').show( "fast" );
+        var ob = JSON.parse(data);
+        if (ob == "-1"){
+           $('#res').text("Marks 0/10 (Copied)");
+           $('#res1').text("Your Score: 0/10");
+        }
+        else{
+
+         $('#resdata').html('');
+         var c = 0;
+        for(var i=0; i < ob.length; i++){
+            if(ob[i] == 1){
+                $('#resdata').append('<div class="col-lg-4"><p class="text-success"><i class="fa fa-check"></i>Test '+i+' pass</p></div>')
+            c++;
+            }else
+            $('#resdata').append('<div class="col-lg-4"><p class="text-danger"><i class="fa fa-times"></i>Test '+i+' failed</p></div>')
+            }
+           $('#res').text("Marks "+(c/ob.length)*10+"/"+10);
+           $('#res1').text("Your Score: "+(c/ob.length)*10+"/"+10);
+           }
+
+        });
+      });
+
+
+</script>
+{% endblock %}

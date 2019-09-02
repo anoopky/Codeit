@@ -1,0 +1,28 @@
+{% extends "user_layout.html" %}
+
+{% block title %}
+<div class="container">
+    <div class="row top">
+        <div class="col-lg-12 mx-auto">
+            <h2 class="text-center text-uppercase text-secondary mb-0">Questions</h2>
+            <hr class="star-dark mb-5">
+            <div class="container">
+                <div class="row">
+                    {% for que in ques %}
+                    <div class="col-lg-4">
+                        <div class="card" style="width: 18rem;">
+                            <div class="card-body">
+                                <h5 class="card-title">{{que.title}}</h5>
+                                <p class="card-text">{{que.description|linebreaksbr}}</p>
+                                <a href="question/{{que.id}}" class="btn btn-primary">Solve it</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
